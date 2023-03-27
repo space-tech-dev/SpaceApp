@@ -31,7 +31,9 @@
     "ios": "react-native run-ios",
     "start": "react-native start",
     "podInstall": "pod-install",
-    "upgradePeerdeps": "install-peerdeps @tarojs/taro-rn@3.6.2 -o -Y && install-peerdeps @tarojs/components-rn@3.6.2 -o -Y && install-peerdeps @tarojs/router-rn@3.6.2 -o -Y && pod-install"
+    "upgradePeerdeps": "install-peerdeps @tarojs/taro-rn@3.6.2 -o -Y && install-peerdeps @tarojs/components-rn@3.6.2 -o -Y && install-peerdeps @tarojs/router-rn@3.6.2 -o -Y && pod-install",
+    "lint": "eslint . --ext .ts,.jsx,.js",
+    "lint:fix": "eslint . --ext .ts,.jsx,.js --fix"
   },
   "browserslist": [
     "last 3 versions",
