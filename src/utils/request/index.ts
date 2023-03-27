@@ -1,5 +1,12 @@
 import Taro from '@tarojs/taro';
 
+interface configType {
+  url: string,
+  method: any,
+  data?: any,
+  headers?: string
+}
+
 // HTTP 状态码错误说明
 const errorMsg = {
   200: '服务器成功返回请求的数据。',
@@ -85,37 +92,24 @@ const interceptors = [customInterceptor];
 interceptors.forEach(interceptorItem => Taro.addInterceptor(interceptorItem));
 
 // 配置请求api
-const request = {
-  get: (url: string, data: any) => {
-    const BASE_URL = getBaseUrl();
-    // let contentType = "application/x-www-form-urlencoded";
-    // let contentType = "application/json;charset=UTF-8";
-    const option: any = {
-      url: BASE_URL + url,  //地址
-      data: data,   //传参
-      method: 'get', //请求方式
-      timeout: 50000, // 超时时间
-      header: {  //请求头
-        'content-type': 'application/json;charset=UTF-8',
-        'Authorization': Taro.getStorageSync('Authorization')
-      }
-    };
-    return Taro.request(option);
-  },
-  post: (url: string, data: any) => {
-    const BASE_URL = getBaseUrl();
-    const option: any = {
-      url: BASE_URL + url,  //地址
-      data: data,   //传参
-      method: 'post', //请求方式
-      timeout: 50000, // 超时时间
-      header: {  //请求头
-        'content-type': 'application/json;charset=UTF-8',
-        'Authorization': Taro.getStorageSync('Authorization')
-      }
-    };
-    return Taro.request(option);
-  }
+const request = async (config: configType) => {
+  let { url, method, data, headers } = config;
+  const BASE_URL = getBaseUrl();
+  // let contentType = "application/x-www-form-urlencoded";
+  let contentType: string = 'application/json;charset=UTF-8';
+  contentType = headers || contentType;
+  let res = await Taro.request({
+    url: BASE_URL + url,  //地址
+    data,   //传参
+    method, //请求方式
+    timeout: 50000, // 超时时间
+    header: {  //请求头
+      'content-type': contentType,
+      'Authorization': Taro.getStorageSync('Authorization')
+    }
+  });
+  return res;
+
 };
 
 export { errorMsg, request };
