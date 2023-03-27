@@ -1,7 +1,31 @@
 {
-  "extends": ["taro/react"],
+  "extends": [
+    "taro/react"
+  ],
   "rules": {
     "react/jsx-uses-react": "off",
-    "react/react-in-jsx-scope": "off"
+    "react/react-in-jsx-scope": "off",
+    // 缩进两个空格
+    "indent": [
+      "error",
+      2
+    ],
+    // jsx 引号使用单引号
+    "jsx-quotes": [
+      "error",
+      "prefer-single"
+    ],
+    // 所有文件 使用单引号
+    "quotes": [
+      "error",
+      "single"
+    ],
+    // 必须带上分号
+    "semi": [
+      "error",
+      "always"
+    ],
+    // 去除使用require报错
+    "import/no-commonjs": 0
   }
 }

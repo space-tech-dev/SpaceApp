@@ -1,3 +1,5 @@
 export default definePageConfig({
-  navigationBarTitleText: '首页'
-})
+  navigationBarTitleText: '测试',
+  navigationStyle: 'custom',
+  disableScroll: true
+});
