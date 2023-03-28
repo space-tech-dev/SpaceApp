@@ -65,32 +65,34 @@ const pageToLogin = () => {
   };
 };
 
+const handleStatus = (res) => {
+  if (res['statusCode'] !== 200) {
+    if (res['statusCode'] === 403 || res['statusCode'] === 401) {
+      Taro.setStorageSync('Authorization', '');
+      pageToLogin();
+    }
+    return Promise.reject({ desc: errorMsg['statusCode'] });
+  } else {
+    if (res.data[CODE] == 0) {
+      if(toast.successToast) Taro.showToast({
+        title: '成功',
+      });
+      return Promise.resolve(res.data);
+    } else {
+      return Promise.reject({ desc: errorMsg[res.data[CODE]] });
+    }
+  }
+};
+
 // 请求拦截
 const customInterceptor = (chain: any) => {
   // 请求前的参数处理
   const requestParams = chain.requestParams;
   // 请求后的结果处理
   return chain.proceed(requestParams).then(res => {
-    // Taro.hideLoading();
-    // 只要请求成功，不管返回什么状态码，都走这个回调
-    if (res['statusCode'] !== 200) {
-      if (res['statusCode'] === 403 || res['statusCode'] === 401) {
-        Taro.setStorageSync('Authorization', '');
-        pageToLogin();
-      }
-      return Promise.reject({ desc: errorMsg['statusCode'] });
-    } else {
-      console.log(res.data);
-      if (res.data[CODE] == 0) {
-        if(toast.successToast) Taro.showToast({
-          title: '成功',
-        });
-        return res.data;
-      } else {
-        console.log(errorMsg, CODE);
-        return Promise.reject({ desc: errorMsg[res.data[CODE]] });
-      }
-    }
+    // 只要请求成功，不管返回什么状态码，都走这个函数
+
+    return handleStatus(res);
   }).catch((error: any) => {
     const type = typeof toast.errorToast;
     if(toast.errorToast) Taro.showToast({
