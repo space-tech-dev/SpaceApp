@@ -1,5 +1,4 @@
 import Taro from '@tarojs/taro';
-
 import env from './env';
 
 interface configType {
