@@ -26,6 +26,8 @@
       "always"
     ],
     // 去除使用require报错
-    "import/no-commonjs": 0
+    "import/no-commonjs": 0,
+    // import 下面强制换行
+    "import/newline-after-import": ["error", { "count": 1 }]
   }
 }
