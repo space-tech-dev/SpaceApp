@@ -1,14 +1,23 @@
 import Taro from '@tarojs/taro';
 
+import env from './env';
+
 interface configType {
   url: string,
   method: any,
   data?: any,
-  headers?: string
+  headers?: string,
+  errorToast?: boolean,
+  successToast?: boolean,
 }
+
+const CODE: string = 'code';
+
+const fetch = Taro.request;
 
 // HTTP 状态码错误说明
 const errorMsg = {
+  101: '你错了',
   200: '服务器成功返回请求的数据。',
   201: '新建或修改数据成功。',
   202: '一个请求已经进入后台排队（异步任务）。',
@@ -26,17 +35,14 @@ const errorMsg = {
   504: '网关超时。',
 };
 
-// 判断当前环境
-const getBaseUrl = () => {
-  let BASE_URL = '';
-  if (process.env.NODE_ENV === 'development') {
-    //开发环境 - 根据请求不同返回不同的BASE_URL
-    BASE_URL = '开发环境';
-  } else {
-    // 生产环境
-    BASE_URL = '生产环境';
-  }
-  return BASE_URL;
+interface toastType {
+  errorToast: boolean | undefined | string;
+  successToast: boolean | undefined | string;
+}
+
+const toast: toastType = {
+  errorToast: undefined,
+  successToast: undefined,
 };
 
 // 获取当前页url
@@ -59,57 +65,73 @@ const pageToLogin = () => {
   };
 };
 
+const handleStatus = (res) => {
+  if (res['statusCode'] !== 200) {
+    if (res['statusCode'] === 403 || res['statusCode'] === 401) {
+      Taro.setStorageSync('Authorization', '');
+      pageToLogin();
+    }
+    return Promise.reject({ desc: errorMsg['statusCode'] });
+  } else {
+    if (res.data[CODE] == 0) {
+      if(toast.successToast) Taro.showToast({
+        title: '成功',
+      });
+      return Promise.resolve(res.data);
+    } else {
+      return Promise.reject({ desc: errorMsg[res.data[CODE]] });
+    }
+  }
+};
+
 // 请求拦截
 const customInterceptor = (chain: any) => {
+  // 请求前的参数处理
   const requestParams = chain.requestParams;
-  Taro.showLoading({
-    title: '加载中',
-  });
+  // 请求后的结果处理
   return chain.proceed(requestParams).then(res => {
-    Taro.hideLoading();
-    // 只要请求成功，不管返回什么状态码，都走这个回调
-    if (errorMsg[res.statusCode]) {
-      if (errorMsg[res.statusCode] === 403 || errorMsg[res.statusCode] === 401) {
-        Taro.setStorageSync('Authorization', '');
-        pageToLogin();
-      } else if (errorMsg[res.statusCode] === 200) {
-        return res.data;
-      }
-      return Promise.reject({ desc: errorMsg[res.statusCode] });
-    }
+    // 只要请求成功，不管返回什么状态码，都走这个函数
+
+    return handleStatus(res);
   }).catch((error: any) => {
-    Taro.hideLoading();
-    console.error(error);
-    return Promise.reject(error);
+    const type = typeof toast.errorToast;
+    if(toast.errorToast) Taro.showToast({
+      title: type == 'string' ? toast.errorToast : error.desc,
+      icon: 'error'
+    });
+    return Promise.reject({ ...error });
   });
 };
 // Taro 提供了两个内置拦截器
 // logInterceptor - 用于打印请求的相关信息
 // timeoutInterceptor - 在请求超时时抛出错误。
 // const interceptors = [customInterceptor, Taro.interceptors.logInterceptor]
-const interceptors = [customInterceptor];
-//添加拦截器
-interceptors.forEach(interceptorItem => Taro.addInterceptor(interceptorItem));
+// const interceptors = [customInterceptor];
+// //添加拦截器
+// interceptors.forEach(interceptorItem => Taro.addInterceptor(interceptorItem));
+
+Taro.addInterceptor(customInterceptor);
 
 // 配置请求api
 const request = async (config: configType) => {
   let { url, method, data, headers } = config;
-  const BASE_URL = getBaseUrl();
   // let contentType = "application/x-www-form-urlencoded";
   let contentType: string = 'application/json;charset=UTF-8';
   contentType = headers || contentType;
-  let res = await Taro.request({
-    url: BASE_URL + url,  //地址
+  toast.errorToast = config.errorToast;
+  toast.successToast = config.successToast;
+  let res = await fetch({
+    url: env.API_MAIN + url,  //地址
     data,   //传参
     method, //请求方式
     timeout: 50000, // 超时时间
     header: {  //请求头
       'content-type': contentType,
-      'Authorization': Taro.getStorageSync('Authorization')
+      'Authorization': Taro.getStorageSync('Authorization'),
     }
   });
   return res;
 
 };
 
-export { errorMsg, request };
+export default request;
