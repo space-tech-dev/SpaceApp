@@ -18,4 +18,4 @@ const errorMsg = {
   504: '网关超时。',
 };
 
-export default errorMsg
+export default errorMsg;
